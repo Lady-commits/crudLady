@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Expense Tracker</title>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #b0b0b0;
+            font-size: 1em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card.income {
+            border-left-color: var(--success);
+        }
+
+        .stat-card.expense {
+            border-left-color: var(--danger);
+        }
+
+        .stat-card.balance {
+            border-left-color: var(--primary);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .stat-card.over .value {
+            color: var(--danger);
+        }
+
+        .form-container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-left: 8px;
+        }
+
+        .btn-cancel:hover {
+            background: #ccc;
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 30px !important;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-makan { background: #fef3c7; color: #92400e; }
+        .badge-transport { background: #dbeafe; color: #1e40af; }
+        .badge-kuota { background: #d1fae5; color: #065f46; }
+        .badge-uang-saku { background: #ede9fe; color: #5b21b6; }
+        .badge-lainnya { background: #f3f4f6; color: #374151; }
+
+        .badge-type {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .badge-income { background: #d1fae5; color: #065f46; }
+        .badge-expense { background: #fee2e2; color: #991b1b; }
+
+        .action-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-right: 5px;
+            color: white;
+        }
+
+        .btn-edit { background: #f0ad4e; }
+        .btn-delete { background: var(--danger); }
+
+        .amount-income {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .amount-expense {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Student Expense Tracker</h1>
+        <p>Kelola keuangan bulanan Anda...</p>
+    </header>
+
+    <!-- 1. STATISTIK SECTION -->
+    <section class="stats-grid">
+        <div class="stat-card income">
+            <h3>💰 Total Pemasukan</h3>
+            <div class="value" id="stat-income">Rp 0</div>
+        </div>
+        <div class="stat-card expense">
+            <h3>📊 Total Pengeluaran</h3>
+            <div class="value" id="stat-expense">Rp 0</div>
+        </div>
+        <div class="stat-card balance">
+            <h3>💵 Saldo</h3>
+            <div class="value" id="stat-balance">Rp 0</div>
+        </div>
+    </section>
+
+    <!-- 2. FORM SECTION -->
+    <section class="form-container">
+        <form id="expense-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="type">Jenis</label>
+                    <select id="type" required>
+                        <option value="Pengeluaran">Pengeluaran</option>
+                        <option value="Pemasukan">Pemasukan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="desc">Deskripsi</label>
+                    <input type="text" id="desc" placeholder="Cth: Uang saku / Makan siang" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Nominal (Rp)</label>
+                    <input type="number" id="amount" placeholder="50000" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Kategori</label>
+                    <select id="category" required>
+                        <option value="Makan">Makan</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Kuota">Kuota</option>
+                        <option value="Uang Saku">Uang Saku</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn-primary" id="btn-submit">Tambah</button>
+                    <button type="button" class="btn-cancel" id="btn-cancel" style="display: none;">Batal</button>
+                </div>
+            </div>
+            <input type="hidden" id="edit-id">
+        </form>
+    </section>
+
+    <!-- 3. TABLE SECTION -->
+    <section class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Jenis</th>
+                    <th>Deskripsi</th>
+                    <th>Kategori</th>
+                    <th>Nominal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="expense-list">
+                <tr>
+                    <td colspan="6" class="empty-state">Memuat data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- FIREBASE & CRUD SCRIPT -->
+    <script type="module">
+        // 1. IMPOR FUNGSI DARI CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // 2. KONFIGURASI FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNkdITzgANNCaI6fXGbzmaguRFCwPtZI",
+            authDomain: "crudlady.firebaseapp.com",
+            projectId: "crudlady",
+            storageBucket: "crudlady.firebasestorage.app",
+            messagingSenderId: "469798238238",
+            appId: "1:469798238238:web:6513aec040b6675744d60f",
+            measurementId: "G-8EYGKW50QS"
+        };
+
+        // 3. INISIALISASI
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const expensesCollection = collection(db, "expenses");
+
+        console.log("Firebase berhasil dihubungkan!");
+
+        // Format Rupiah
+        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+
+        // Query urutan berdasarkan waktu terbaru
+        const q = query(expensesCollection, orderBy("createdAt", "desc"));
+
+        // READ Real-time & Render Tabel
+        onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('expense-list');
+            list.innerHTML = '';
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+            const currentMonth = new Date().getMonth();
+
+            if (snapshot.empty) {
+                list.innerHTML = '<tr><td colspan="6" class="empty-state">Belum ada data.</td></tr>';
+            }
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                const expDate = data.createdAt?.toDate() || new Date();
+                const type = data.type || 'Pengeluaran';
+
+                // Hitung statistik bulan ini
+                if (expDate.getMonth() === currentMonth) {
+                    if (type === 'Pemasukan') {
+                        totalIncome += data.amount;
+                    } else {
+                        totalExpense += data.amount;
+                    }
+                }
+
+                // Render baris tabel
+                const row = document.createElement('tr');
+                const amountClass = type === 'Pemasukan' ? 'amount-income' : 'amount-expense';
+                const amountPrefix = type === 'Pemasukan' ? '+' : '-';
+                const typeBadgeClass = type === 'Pemasukan' ? 'badge-income' : 'badge-expense';
+
+                row.innerHTML = `
+                    <td>${expDate.toLocaleDateString('id-ID')}</td>
+                    <td><span class="badge-type ${typeBadgeClass}">${type}</span></td>
+                    <td>${data.description}</td>
+                    <td><span class="badge badge-${data.category.toLowerCase().replace(' ', '-')}">${data.category}</span></td>
+                    <td class="${amountClass}">${amountPrefix} ${formatRupiah(data.amount)}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="window.editExpense('${id}', '${type}', '${data.description}', ${data.amount}, '${data.category}')">Edit</button>
+                        <button class="action-btn btn-delete" onclick="window.deleteExpense('${id}')">Hapus</button>
+                    </td>
+                `;
+                list.appendChild(row);
+            });
+
+            // Update UI Statistik
+            const balance = totalIncome - totalExpense;
+            document.getElementById('stat-income').textContent = formatRupiah(totalIncome);
+            document.getElementById('stat-expense').textContent = formatRupiah(totalExpense);
+            document.getElementById('stat-balance').textContent = formatRupiah(balance);
+
+            // Cek defisit
+            const balanceCard = document.querySelector('.stat-card.balance');
+            if (balance < 0) balanceCard.classList.add('over');
+            else balanceCard.classList.remove('over');
+        });
+
+        // 1. HANDLE FORM SUBMIT (CREATE / UPDATE)
+        document.getElementById('expense-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('type').value;
+            const desc = document.getElementById('desc').value;
+            const amount = Number(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const editId = document.getElementById('edit-id').value;
+
+            try {
+                if (editId) {
+                    // MODE UPDATE
+                    await updateDoc(doc(db, "expenses", editId), {
+                        type: type,
+                        description: desc, amount: amount, category: category
+                    });
+                } else {
+                    // MODE CREATE
+                    await addDoc(expensesCollection, {
+                        type: type,
+                        description: desc, amount: amount, category: category,
+                        createdAt: serverTimestamp()
+                    });
+                }
+                resetForm();
+            } catch (error) {
+                console.error("Error: ", error);
+                alert("Gagal menyimpan data.");
+            }
+        });
+
+        // 2. FUNGSI DELETE
+        window.deleteExpense = async (id) => {
+            if (confirm("Yakin ingin menghapus data ini?")) {
+                await deleteDoc(doc(db, "expenses", id));
+            }
+        };
+
+        // 3. FUNGSI EDIT
+        window.editExpense = (id, type, desc, amount, category) => {
+            document.getElementById('type').value = type;
+            document.getElementById('desc').value = desc;
+            document.getElementById('amount').value = amount;
+            document.getElementById('category').value = category;
+            document.getElementById('edit-id').value = id;
+
+            document.getElementById('btn-submit').textContent = 'Update';
+            document.getElementById('btn-cancel').style.display = 'inline-block';
+        };
+
+        // 4. RESET FORM
+        function resetForm() {
+            document.getElementById('expense-form').reset();
+            document.getElementById('edit-id').value = '';
+            document.getElementById('btn-submit').textContent = 'Tambah';
+            document.getElementById('btn-cancel').style.display = 'none';
+        }
+
+        document.getElementById('btn-cancel').addEventListener('click', resetForm);
+    </script>
+
+</body>
+</html>
